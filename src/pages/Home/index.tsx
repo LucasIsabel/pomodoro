@@ -9,13 +9,34 @@ import {
 } from './styles';
 import { Play } from '@phosphor-icons/react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+const createTaskZodValidationSchema = z.object({
+  task: z.string().min(1, { message: 'Task name is required' }),
+  minutesAmount: z.number().min(5).max(60, { message: 'Max 60 minutes' }),
+  owner: z.string().optional(),
+});
+
+type FormDataProps = z.infer<typeof createTaskZodValidationSchema>;
 
 export function Home() {
-  const { register, handleSubmit, watch } = useForm();
+  const { register, handleSubmit, watch, reset } = useForm<FormDataProps>({
+    resolver: zodResolver(createTaskZodValidationSchema),
+    defaultValues: {
+      task: '',
+      minutesAmount: 0,
+    },
+  });
 
-  const onSubmit = handleSubmit((data) => console.log(data));
+  const onSubmit = handleSubmit((data) => {
+    console.log(data);
+    reset();
+  });
 
   const task = watch('task');
+
+  //console.log(formState.errors);
 
   const isSubmitButtonDisabled = !task;
 
@@ -43,7 +64,7 @@ export function Home() {
             id="minutesAmount"
             type="number"
             step={5}
-            min={5}
+            min={0}
             max={60}
             placeholder="00"
             {...register('minutesAmount', { valueAsNumber: true, min: 5 })}
